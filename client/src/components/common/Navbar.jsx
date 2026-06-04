@@ -79,7 +79,7 @@ const Navbar = () => {
     >
       <div className="gv-nav-inner">
         <Link to="/" className="gv-logo" onClick={closeMenu}>
-          GreenVault
+          Habit-Hive
         </Link>
 
         <nav className="gv-desktop-nav">
