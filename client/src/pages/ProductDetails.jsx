@@ -98,38 +98,8 @@ const ProductDetails = () => {
   description: product.title,
   order_id: data.razorpayOrder.id,
 
-  prefill: {
-    email: user.email,
-    contact: "9999999999",
-  },
-
   method: {
     upi: true,
-    card: false,
-    netbanking: false,
-    wallet: false,
-    emi: false,
-    paylater: false,
-  },
-
-  config: {
-    display: {
-      blocks: {
-        upi_collect: {
-          name: "Pay using UPI ID",
-          instruments: [
-            {
-              method: "upi",
-              flows: ["collect"],
-            },
-          ],
-        },
-      },
-      sequence: ["block.upi_collect"],
-      preferences: {
-        show_default_blocks: false,
-      },
-    },
   },
 
   handler: async function (response) {
@@ -147,6 +117,11 @@ const ProductDetails = () => {
     ondismiss: function () {
       setPaying(false);
     },
+  },
+
+  prefill: {
+    email: user.email,
+    contact: "9999999999",
   },
 
   theme: {
