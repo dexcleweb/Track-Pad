@@ -3,6 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const path = require("path");
 
 const { clientUrl } = require("./config/env");
 
@@ -18,7 +19,6 @@ const errorMiddleware = require("./middleware/error.middleware");
 const app = express();
 
 // Required for Render, Railway, Heroku, etc.
-// Fixes express-rate-limit X-Forwarded-For warning
 app.set("trust proxy", 1);
 
 app.use(
@@ -32,17 +32,46 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// Razorpay webhook must receive RAW body
-// This MUST come before express.json()
+/*
+|--------------------------------------------------------------------------
+| Static File Serving
+|--------------------------------------------------------------------------
+| Makes uploaded files available publicly:
+| http://localhost:5000/uploads/filename.jpg
+|
+*/
 app.use(
-  "/api/payments/webhook",
-  express.raw({ type: "application/json" })
+  "/uploads",
+  express.static(path.join(process.cwd(), "uploads"))
 );
 
-// Normal JSON parsing for all other routes
+/*
+|--------------------------------------------------------------------------
+| Razorpay Webhook
+|--------------------------------------------------------------------------
+| Must receive RAW body before express.json()
+|
+*/
+app.use(
+  "/api/payments/webhook",
+  express.raw({
+    type: "application/json",
+  })
+);
+
+/*
+|--------------------------------------------------------------------------
+| Body Parsers
+|--------------------------------------------------------------------------
+*/
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+/*
+|--------------------------------------------------------------------------
+| Health Check
+|--------------------------------------------------------------------------
+*/
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -50,6 +79,11 @@ app.get("/", (req, res) => {
   });
 });
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/payments", paymentRoutes);
@@ -57,7 +91,11 @@ app.use("/api/purchases", purchaseRoutes);
 app.use("/api/counselling", counsellingRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Error handler should always be last
+/*
+|--------------------------------------------------------------------------
+| Error Handler
+|--------------------------------------------------------------------------
+*/
 app.use(errorMiddleware);
 
 module.exports = app;

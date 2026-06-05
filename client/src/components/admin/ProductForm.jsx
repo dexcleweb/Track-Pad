@@ -7,7 +7,7 @@ const initialState = {
   price: 499,
   type: "DIGITAL_PRODUCT",
   deliveryType: "LINK",
-  thumbnail: "",
+  thumbnail: null,
   deliveryUrl: "",
   fileUrl: "",
   isActive: true,
@@ -15,6 +15,7 @@ const initialState = {
 
 const ProductForm = ({ onSubmit }) => {
   const [form, setForm] = useState(initialState);
+  const [preview, setPreview] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -28,6 +29,19 @@ const ProductForm = ({ onSubmit }) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      update("thumbnail", null);
+      setPreview("");
+      return;
+    }
+
+    update("thumbnail", file);
+    setPreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -35,15 +49,31 @@ const ProductForm = ({ onSubmit }) => {
     setStatus("");
 
     try {
-      await onSubmit({
-        ...form,
-        price: Number(form.price),
-        thumbnail: form.thumbnail.trim() || null,
-        deliveryUrl: isLinkDelivery ? form.deliveryUrl.trim() || null : null,
-        fileUrl: isFileDelivery ? form.fileUrl.trim() || null : null,
-      });
+      const formData = new FormData();
+
+      formData.append("title", form.title);
+      formData.append("description", form.description);
+      formData.append("price", Number(form.price));
+      formData.append("type", form.type);
+      formData.append("deliveryType", form.deliveryType);
+      formData.append("isActive", form.isActive);
+
+      if (form.thumbnail) {
+        formData.append("thumbnail", form.thumbnail);
+      }
+
+      if (isLinkDelivery) {
+        formData.append("deliveryUrl", form.deliveryUrl.trim());
+      }
+
+      if (isFileDelivery) {
+        formData.append("fileUrl", form.fileUrl.trim());
+      }
+
+      await onSubmit(formData);
 
       setForm(initialState);
+      setPreview("");
       setStatus("Product saved successfully.");
     } catch (error) {
       setStatus(error.response?.data?.message || "Failed to save product.");
@@ -116,14 +146,15 @@ const ProductForm = ({ onSubmit }) => {
       </label>
 
       <label>
-        <span>Thumbnail URL</span>
-        <input
-          type="url"
-          placeholder="https://..."
-          value={form.thumbnail}
-          onChange={(e) => update("thumbnail", e.target.value)}
-        />
+        <span>Thumbnail Image</span>
+        <input type="file" accept="image/*" onChange={handleThumbnailChange} />
       </label>
+
+      {preview && (
+        <div className="thumbnail-preview">
+          <img src={preview} alt="Thumbnail preview" />
+        </div>
+      )}
 
       <div className="form-row">
         <label className={!isLinkDelivery ? "field-muted" : ""}>
@@ -189,6 +220,11 @@ const ProductForm = ({ onSubmit }) => {
           transition: border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
         }
 
+        .admin-product-form input[type="file"] {
+          padding: 8px;
+          cursor: pointer;
+        }
+
         .admin-product-form textarea {
           min-height: 76px;
           resize: vertical;
@@ -219,6 +255,21 @@ const ProductForm = ({ onSubmit }) => {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 10px;
+        }
+
+        .thumbnail-preview {
+          width: 100%;
+          border: 1px solid var(--border);
+          border-radius: 14px;
+          overflow: hidden;
+          background: var(--bg);
+        }
+
+        .thumbnail-preview img {
+          width: 100%;
+          max-height: 220px;
+          object-fit: cover;
+          display: block;
         }
 
         .form-status {

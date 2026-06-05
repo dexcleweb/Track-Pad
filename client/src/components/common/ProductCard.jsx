@@ -1,13 +1,27 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const getImageUrl = (thumbnail) => {
+  if (!thumbnail) return null;
+
+  if (thumbnail.startsWith("http")) {
+    return thumbnail;
+  }
+
+  return `${API_URL}${thumbnail}`;
+};
+
 const ProductCard = ({ product }) => {
+  const imageUrl = getImageUrl(product.thumbnail);
+
   return (
     <article className="product-card">
       <Link to={`/products/${product.slug}`} className="product-card-link">
         <div className="product-media">
-          {product.thumbnail ? (
-            <img src={product.thumbnail} alt={product.title} />
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.title} />
           ) : (
             <div className="product-placeholder">
               {product.title?.slice(0, 1)}
@@ -59,11 +73,12 @@ const ProductCard = ({ product }) => {
         }
 
         .product-media {
-          height: 150px;
+          height: 160px;
           background:
             linear-gradient(135deg, rgba(22, 163, 74, 0.13), rgba(245, 216, 0, 0.08)),
             var(--bg);
           border-bottom: 1px solid var(--border);
+          overflow: hidden;
         }
 
         .product-media img {
@@ -71,6 +86,11 @@ const ProductCard = ({ product }) => {
           height: 100%;
           object-fit: cover;
           display: block;
+          transition: transform 0.25s ease;
+        }
+
+        .product-card:hover .product-media img {
+          transform: scale(1.04);
         }
 
         .product-placeholder {
