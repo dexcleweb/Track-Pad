@@ -14,8 +14,9 @@ const verifyOtpSchema = z.object({
 async function sendOtp(req, res, next) {
   try {
     const { email } = sendOtpSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const result = await createAndSendOtp(email);
+    const result = await createAndSendOtp(normalizedEmail);
 
     res.json({
       message: result.message,
@@ -29,8 +30,9 @@ async function sendOtp(req, res, next) {
 async function verifyOtpController(req, res, next) {
   try {
     const { email, otp } = verifyOtpSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await verifyOtp(email, otp);
+    const user = await verifyOtp(normalizedEmail, otp);
     const token = signToken(user);
 
     res.json({
