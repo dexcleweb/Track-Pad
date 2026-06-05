@@ -1,5 +1,6 @@
 import api from "./api";
 
+
 export const getAdminStats = async () => {
   const res = await api.get("/admin/stats");
   return res.data.stats;
@@ -43,4 +44,9 @@ export const updateBooking = async (id, status) => {
 export const createCounsellingBooking = async (payload) => {
   const res = await api.post("/counselling/book", payload);
   return res.data.booking;
+};
+
+export const getAdminUsers = async () => {
+  const response = await api.get("/admin/users");
+  return response.data.users;
 };
