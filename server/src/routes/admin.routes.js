@@ -1,6 +1,8 @@
 const express = require("express");
+
 const authMiddleware = require("../middleware/auth.middleware");
 const adminMiddleware = require("../middleware/admin.middleware");
+
 const { getAdminUsers } = require("../controllers/adminUser.controller");
 
 const {
@@ -12,7 +14,6 @@ const {
 const {
   getAdminStats,
   getAdminOrders,
-  getAdminUsers,
 } = require("../controllers/admin.controller");
 
 const {
@@ -35,6 +36,5 @@ router.delete("/products/:id", deleteProduct);
 
 router.get("/counselling", getAdminBookings);
 router.put("/counselling/:id", updateBooking);
-router.get("/users", getAdminUsers);
 
 module.exports = router;
