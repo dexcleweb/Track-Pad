@@ -20,12 +20,12 @@ const Navbar = () => {
       { to: "/products", label: "Products" },
     ];
 
-    if (user) {
-      items.push(
-        { to: "/my-purchases", label: "My Purchases" },
-        { to: "/counselling", label: "Counselling" }
-      );
-    }
+    // if (user) {
+    //   items.push(
+    //     { to: "/my-purchases", label: "My Purchases" },
+    //     { to: "/counselling", label: "Counselling" }
+    //   );
+    // }
 
     if (isAdmin) {
       items.push({

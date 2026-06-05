@@ -68,7 +68,7 @@ const Home = () => {
             <div className="progress-block">
               <div className="progress-row">
                 <span>Habit Tracker</span>
-                <strong>82%</strong>
+                <strong>99%🔥</strong>
               </div>
               <div className="progress-track">
                 <div style={{ width: "82%" }} />
