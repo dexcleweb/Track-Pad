@@ -5,17 +5,24 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem("token"));
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [loading, setLoading] = useState(Boolean(token));
 
   const login = (newToken, newUser) => {
     localStorage.setItem("token", newToken);
+    localStorage.setItem("user", JSON.stringify(newUser));
+
     setToken(newToken);
     setUser(newUser);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
     setToken(null);
     setUser(null);
   };
@@ -28,8 +35,10 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const data = await getMe();
-        setUser(data.user);
+        const userData = await getMe();
+
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
       } catch {
         logout();
       } finally {
