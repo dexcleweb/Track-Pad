@@ -195,29 +195,39 @@ const ProductForm = ({ onSubmit }) => {
           onChange={handleThumbnailChange}
         />
 
-        <button
-          type="button"
+        <div
           className={`thumbnail-uploader ${preview ? "has-preview" : ""}`}
           onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
         >
           {preview ? (
             <img src={preview} alt="Thumbnail preview" />
           ) : (
             <div className="thumbnail-empty">
               <div className="thumbnail-icon">
-                <UploadCloud size={24} />
+                <UploadCloud size={25} />
               </div>
 
-              <strong>Upload product thumbnail</strong>
-              <small>PNG, JPG, WEBP supported</small>
+              <div className="thumbnail-text">
+                <strong>Upload product thumbnail</strong>
+                <small>PNG, JPG, WEBP supported</small>
+              </div>
+
+              <div className="thumbnail-choose-btn">
+                <ImagePlus size={16} />
+                Choose Image
+              </div>
             </div>
           )}
 
-          <div className="thumbnail-overlay">
-            <ImagePlus size={16} />
-            <span>{preview ? "Change Image" : "Choose Image"}</span>
-          </div>
-        </button>
+          {preview && (
+            <div className="thumbnail-change-btn">
+              <ImagePlus size={16} />
+              Change Image
+            </div>
+          )}
+        </div>
 
         {thumbnailName && (
           <div className="thumbnail-meta">
@@ -270,13 +280,13 @@ const ProductForm = ({ onSubmit }) => {
       <style>{`
         .admin-product-form {
           display: grid;
-          gap: 10px;
+          gap: 12px;
         }
 
         .admin-product-form label,
         .thumbnail-field {
           display: grid;
-          gap: 5px;
+          gap: 6px;
         }
 
         .admin-product-form span,
@@ -340,9 +350,8 @@ const ProductForm = ({ onSubmit }) => {
         }
 
         .thumbnail-uploader {
-          position: relative;
           width: 100%;
-          min-height: 190px;
+          min-height: 250px;
           overflow: hidden;
           border-radius: 18px;
           border: 1px dashed rgba(22, 163, 74, 0.45);
@@ -353,7 +362,7 @@ const ProductForm = ({ onSubmit }) => {
           cursor: pointer;
           display: grid;
           place-items: center;
-          padding: 0;
+          padding: 26px 18px;
           transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
@@ -364,78 +373,78 @@ const ProductForm = ({ onSubmit }) => {
         }
 
         .thumbnail-uploader.has-preview {
+          position: relative;
+          padding: 0;
           border-style: solid;
         }
 
         .thumbnail-uploader img {
           width: 100%;
-          height: 220px;
+          height: 250px;
           object-fit: cover;
           display: block;
         }
 
         .thumbnail-empty {
+          width: 100%;
           display: grid;
           place-items: center;
-          gap: 7px;
-          padding: 28px 18px;
+          gap: 18px;
           text-align: center;
         }
 
         .thumbnail-icon {
-          width: 52px;
-          height: 52px;
+          width: 78px;
+          height: 78px;
           display: grid;
           place-items: center;
-          border-radius: 16px;
+          border-radius: 22px;
           color: #16a34a;
           background: rgba(22, 163, 74, 0.12);
           border: 1px solid rgba(22, 163, 74, 0.22);
         }
 
-        .thumbnail-empty strong {
+        .thumbnail-text {
+          display: grid;
+          gap: 8px;
+        }
+
+        .thumbnail-text strong {
           color: var(--text);
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 950;
           letter-spacing: -0.02em;
         }
 
-        .thumbnail-empty small {
+        .thumbnail-text small {
           color: var(--muted);
-          font-size: 0.72rem;
+          font-size: 0.76rem;
           font-weight: 800;
         }
 
-        .thumbnail-overlay {
-          position: absolute;
-          left: 12px;
-          right: 12px;
-          bottom: 12px;
-          display: flex;
+        .thumbnail-choose-btn,
+        .thumbnail-change-btn {
+          display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
-          padding: 9px 12px;
+          gap: 8px;
+          width: min(100%, 340px);
+          min-height: 46px;
+          padding: 10px 18px;
           border-radius: 999px;
-          background: rgba(8, 13, 10, 0.72);
+          background: rgba(3, 9, 5, 0.72);
           color: #fff;
-          font-size: 0.78rem;
-          font-weight: 900;
+          font-size: 0.86rem;
+          font-weight: 950;
           backdrop-filter: blur(12px);
-          opacity: 0;
-          transform: translateY(8px);
-          transition: opacity 0.18s ease, transform 0.18s ease;
         }
 
-        .thumbnail-uploader:hover .thumbnail-overlay,
-        .thumbnail-uploader:focus-visible .thumbnail-overlay {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .thumbnail-uploader:not(.has-preview) .thumbnail-overlay {
-          opacity: 1;
-          transform: translateY(0);
+        .thumbnail-change-btn {
+          position: absolute;
+          left: 16px;
+          right: 16px;
+          bottom: 16px;
+          width: auto;
         }
 
         .thumbnail-meta {
@@ -499,11 +508,18 @@ const ProductForm = ({ onSubmit }) => {
           }
 
           .thumbnail-uploader {
-            min-height: 170px;
+            min-height: 230px;
+            padding: 22px 14px;
           }
 
           .thumbnail-uploader img {
-            height: 190px;
+            height: 230px;
+          }
+
+          .thumbnail-icon {
+            width: 66px;
+            height: 66px;
+            border-radius: 18px;
           }
         }
       `}</style>
