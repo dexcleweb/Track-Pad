@@ -8,7 +8,6 @@ import {
   Mail,
   Phone,
   RefreshCw,
-  RosetteDash,
   Save,
   Search,
   ShieldCheck,
