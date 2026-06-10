@@ -3,9 +3,16 @@ const prisma = require("../config/prisma");
 const createSlug = require("../utils/slug");
 
 const productSchema = z.object({
-  title: z.string().min(2),
-  description: z.string().min(5),
-  price: z.coerce.number().int().positive(),
+  title: z.string().trim().min(2, "Title must be at least 2 characters."),
+  description: z
+    .string()
+    .trim()
+    .min(5, "Description must be at least 5 characters."),
+
+  price: z.coerce
+    .number()
+    .int("Price must be a whole number.")
+    .min(0, "Price must be 0 or greater."),
 
   type: z.enum([
     "NOTION_TEMPLATE",
@@ -17,8 +24,19 @@ const productSchema = z.object({
 
   deliveryType: z.enum(["LINK", "FILE", "BOTH", "BOOKING"]),
 
-  deliveryUrl: z.string().optional().nullable(),
-  fileUrl: z.string().optional().nullable(),
+  deliveryUrl: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .transform((value) => value || null),
+
+  fileUrl: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .transform((value) => value || null),
 
   isActive: z
     .union([z.boolean(), z.string()])
@@ -33,11 +51,35 @@ const productSchema = z.object({
 
 const updateProductSchema = productSchema.partial();
 
+const buildUniqueSlug = async (title, currentProductId = null) => {
+  const baseSlug = createSlug(title);
+
+  const existingProduct = await prisma.product.findUnique({
+    where: {
+      slug: baseSlug,
+    },
+  });
+
+  if (!existingProduct) {
+    return baseSlug;
+  }
+
+  if (currentProductId && existingProduct.id === currentProductId) {
+    return baseSlug;
+  }
+
+  return `${baseSlug}-${Date.now()}`;
+};
+
 async function getProducts(req, res, next) {
   try {
     const products = await prisma.product.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "desc" },
+      where: {
+        isActive: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     res.json({ products });
@@ -49,7 +91,9 @@ async function getProducts(req, res, next) {
 async function getProductBySlug(req, res, next) {
   try {
     const product = await prisma.product.findUnique({
-      where: { slug: req.params.slug },
+      where: {
+        slug: req.params.slug,
+      },
     });
 
     if (!product || !product.isActive) {
@@ -70,26 +114,21 @@ async function createProduct(req, res, next) {
 
     const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
 
-    const baseSlug = createSlug(data.title);
-
-const existingProduct = await prisma.product.findUnique({
-  where: {
-    slug: baseSlug,
-  },
-});
-
-const slug = existingProduct
-  ? `${baseSlug}-${Date.now()}`
-  : baseSlug;
+    const slug = await buildUniqueSlug(data.title);
 
     const product = await prisma.product.create({
       data: {
-        ...data,
+        title: data.title,
         slug,
-        thumbnail,
+        description: data.description,
+        price: data.price,
         currency: "INR",
-        deliveryUrl: data.deliveryUrl || null,
-        fileUrl: data.fileUrl || null,
+        type: data.type,
+        deliveryType: data.deliveryType,
+        thumbnail,
+        deliveryUrl: data.deliveryUrl,
+        fileUrl: data.fileUrl,
+        isActive: data.isActive,
       },
     });
 
@@ -103,9 +142,27 @@ async function updateProduct(req, res, next) {
   try {
     const data = updateProductSchema.parse(req.body);
 
+    const existingProduct = await prisma.product.findUnique({
+      where: {
+        id: req.params.id,
+      },
+    });
+
+    if (!existingProduct) {
+      return res.status(404).json({
+        message: "Product not found.",
+      });
+    }
+
     const thumbnail = req.file
-      ? { thumbnail: `/uploads/${req.file.filename}` }
+      ? {
+          thumbnail: `/uploads/${req.file.filename}`,
+        }
       : {};
+
+    const slug = data.title
+      ? await buildUniqueSlug(data.title, req.params.id)
+      : existingProduct.slug;
 
     const product = await prisma.product.update({
       where: {
@@ -114,11 +171,7 @@ async function updateProduct(req, res, next) {
       data: {
         ...data,
         ...thumbnail,
-        ...(data.title ? { slug: createSlug(data.title) } : {}),
-        ...(data.deliveryUrl !== undefined
-          ? { deliveryUrl: data.deliveryUrl || null }
-          : {}),
-        ...(data.fileUrl !== undefined ? { fileUrl: data.fileUrl || null } : {}),
+        slug,
       },
     });
 

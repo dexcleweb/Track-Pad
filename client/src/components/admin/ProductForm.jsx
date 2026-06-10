@@ -4,6 +4,7 @@ import Button from "../common/Button";
 const initialState = {
   title: "",
   description: "",
+  pricingType: "PAID",
   price: 499,
   type: "DIGITAL_PRODUCT",
   deliveryType: "LINK",
@@ -19,6 +20,8 @@ const ProductForm = ({ onSubmit }) => {
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const isFree = form.pricingType === "FREE";
+
   const isLinkDelivery =
     form.deliveryType === "LINK" || form.deliveryType === "BOTH";
 
@@ -27,6 +30,14 @@ const ProductForm = ({ onSubmit }) => {
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePricingTypeChange = (value) => {
+    setForm((prev) => ({
+      ...prev,
+      pricingType: value,
+      price: value === "FREE" ? 0 : prev.price || 499,
+    }));
   };
 
   const handleThumbnailChange = (e) => {
@@ -51,9 +62,9 @@ const ProductForm = ({ onSubmit }) => {
     try {
       const formData = new FormData();
 
-      formData.append("title", form.title);
-      formData.append("description", form.description);
-      formData.append("price", Number(form.price));
+      formData.append("title", form.title.trim());
+      formData.append("description", form.description.trim());
+      formData.append("price", isFree ? 0 : Number(form.price));
       formData.append("type", form.type);
       formData.append("deliveryType", form.deliveryType);
       formData.append("isActive", form.isActive);
@@ -106,6 +117,17 @@ const ProductForm = ({ onSubmit }) => {
 
       <div className="form-row">
         <label>
+          <span>Pricing</span>
+          <select
+            value={form.pricingType}
+            onChange={(e) => handlePricingTypeChange(e.target.value)}
+          >
+            <option value="PAID">Paid</option>
+            <option value="FREE">Free</option>
+          </select>
+        </label>
+
+        <label className={isFree ? "field-muted" : ""}>
           <span>Price</span>
           <input
             type="number"
@@ -113,10 +135,13 @@ const ProductForm = ({ onSubmit }) => {
             placeholder="499"
             value={form.price}
             onChange={(e) => update("price", e.target.value)}
-            required
+            disabled={isFree}
+            required={!isFree}
           />
         </label>
+      </div>
 
+      <div className="form-row">
         <label>
           <span>Type</span>
           <select
@@ -130,20 +155,20 @@ const ProductForm = ({ onSubmit }) => {
             <option value="OTHER">Other</option>
           </select>
         </label>
-      </div>
 
-      <label>
-        <span>Delivery Type</span>
-        <select
-          value={form.deliveryType}
-          onChange={(e) => update("deliveryType", e.target.value)}
-        >
-          <option value="LINK">Link</option>
-          <option value="FILE">File</option>
-          <option value="BOTH">Both</option>
-          <option value="BOOKING">Booking</option>
-        </select>
-      </label>
+        <label>
+          <span>Delivery Type</span>
+          <select
+            value={form.deliveryType}
+            onChange={(e) => update("deliveryType", e.target.value)}
+          >
+            <option value="LINK">Link</option>
+            <option value="FILE">File</option>
+            <option value="BOTH">Both</option>
+            <option value="BOOKING">Booking</option>
+          </select>
+        </label>
+      </div>
 
       <label>
         <span>Thumbnail Image</span>
@@ -179,6 +204,12 @@ const ProductForm = ({ onSubmit }) => {
           />
         </label>
       </div>
+
+      {isFree && (
+        <p className="free-note">
+          This product will be saved as free with price ₹0.
+        </p>
+      )}
 
       {status && <p className="form-status">{status}</p>}
 
@@ -270,6 +301,17 @@ const ProductForm = ({ onSubmit }) => {
           max-height: 220px;
           object-fit: cover;
           display: block;
+        }
+
+        .free-note {
+          margin: 0;
+          padding: 9px 11px;
+          border-radius: 11px;
+          background: rgba(22, 163, 74, 0.1);
+          color: #16a34a;
+          font-size: 0.8rem;
+          font-weight: 800;
+          line-height: 1.45;
         }
 
         .form-status {
