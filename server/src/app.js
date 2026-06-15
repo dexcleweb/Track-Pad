@@ -5,8 +5,6 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const { clientUrl } = require("./config/env");
-
 const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
 const paymentRoutes = require("./routes/payment.routes");
@@ -18,16 +16,42 @@ const errorMiddleware = require("./middleware/error.middleware");
 
 const app = express();
 
-// Required for Render, Railway, Heroku, etc.
 app.set("trust proxy", 1);
+
+/*
+|--------------------------------------------------------------------------
+| CORS
+|--------------------------------------------------------------------------
+*/
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://trackkpad.com",
+  "https://www.trackkpad.com",
+];
 
 app.use(
   cors({
-    origin: clientUrl,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error(`CORS blocked for origin: ${origin}`));
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+app.options("*", cors());
+
+/*
+|--------------------------------------------------------------------------
+| Security / Logs / Cookies
+|--------------------------------------------------------------------------
+*/
 app.use(
   helmet({
     crossOriginResourcePolicy: {
@@ -35,6 +59,7 @@ app.use(
     },
   })
 );
+
 app.use(morgan("dev"));
 app.use(cookieParser());
 
@@ -42,21 +67,15 @@ app.use(cookieParser());
 |--------------------------------------------------------------------------
 | Static File Serving
 |--------------------------------------------------------------------------
-| Makes uploaded files available publicly:
-| http://localhost:5000/uploads/filename.jpg
-|
 */
-app.use(
-  "/uploads",
-  express.static(path.join(process.cwd(), "uploads"))
-);
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 /*
 |--------------------------------------------------------------------------
 | Razorpay Webhook
 |--------------------------------------------------------------------------
 | Must receive RAW body before express.json()
-|
+|--------------------------------------------------------------------------
 */
 app.use(
   "/api/payments/webhook",
