@@ -35,21 +35,32 @@ const router = express.Router();
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
+const productUpload = upload.fields([
+  { name: "thumbnail", maxCount: 1 },
+  { name: "tutorialImage", maxCount: 1 },
+]);
+
+// Dashboard
 router.get("/stats", getAdminStats);
+
+// Orders
 router.get("/orders", getAdminOrders);
 router.delete("/orders/:id", deleteAdminOrder);
 router.delete("/orders", clearAdminOrders);
 
+// Users
 router.get("/users", getAdminUsers);
 router.put("/users/:id", updateAdminUser);
 router.patch("/users/:id/suspend", suspendAdminUser);
 router.patch("/users/:id/unsuspend", unsuspendAdminUser);
 router.delete("/users/:id", deleteAdminUser);
 
-router.post("/products", upload.single("thumbnail"), createProduct);
-router.put("/products/:id", upload.single("thumbnail"), updateProduct);
+// Products
+router.post("/products", productUpload, createProduct);
+router.put("/products/:id", productUpload, updateProduct);
 router.delete("/products/:id", deleteProduct);
 
+// Counselling
 router.get("/counselling", getAdminBookings);
 router.put("/counselling/:id", updateBooking);
 

@@ -51,6 +51,15 @@ const productSchema = z.object({
 
 const updateProductSchema = productSchema.partial();
 
+const getUploadedImageUrl = (req) => {
+  const uploadedFile =
+    req.files?.thumbnail?.[0] ||
+    req.files?.tutorialImage?.[0] ||
+    req.file;
+
+  return uploadedFile?.path || null;
+};
+
 const buildUniqueSlug = async (title, currentProductId = null) => {
   const baseSlug = createSlug(title);
 
@@ -112,7 +121,7 @@ async function createProduct(req, res, next) {
   try {
     const data = productSchema.parse(req.body);
 
-    const thumbnail = req.file ? `/uploads/${req.file.filename}` : null;
+    const thumbnail = getUploadedImageUrl(req);
 
     const slug = await buildUniqueSlug(data.title);
 
@@ -154,9 +163,11 @@ async function updateProduct(req, res, next) {
       });
     }
 
-    const thumbnail = req.file
+    const uploadedImageUrl = getUploadedImageUrl(req);
+
+    const thumbnail = uploadedImageUrl
       ? {
-          thumbnail: `/uploads/${req.file.filename}`,
+          thumbnail: uploadedImageUrl,
         }
       : {};
 

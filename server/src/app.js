@@ -3,7 +3,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const path = require("path");
+
 
 const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
@@ -68,7 +68,7 @@ app.use(cookieParser());
 | Static File Serving
 |--------------------------------------------------------------------------
 */
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 /*
 |--------------------------------------------------------------------------
