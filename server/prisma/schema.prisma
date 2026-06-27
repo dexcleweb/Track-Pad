@@ -74,24 +74,25 @@ model Otp {
 }
 
 model Product {
-  id           String       @id @default(cuid())
-  title        String
-  slug         String       @unique
-  description  String
-  price        Int
-  currency     String       @default("INR")
-  type         ProductType
-  deliveryType DeliveryType
-  thumbnail    String?
-  fileUrl      String?
-  deliveryUrl  String?
-  isActive     Boolean      @default(true)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id            String       @id @default(cuid())
+  title         String
+  slug          String       @unique
+  description   String
+  price         Int
+  currency      String       @default("INR")
+  type          ProductType
+  deliveryType  DeliveryType
+  thumbnail     String?
+  tutorialImage String?
+  fileUrl       String?
+  deliveryUrl   String?
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
-  orderItems   OrderItem[]
-  purchases    Purchase[]
-  bookings     CounsellingBooking[]
+  orderItems    OrderItem[]
+  purchases     Purchase[]
+  bookings      CounsellingBooking[]
 }
 
 model Order {

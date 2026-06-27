@@ -1,0 +1,2 @@
+ALTER TABLE "Product" ADD COLUMN IF NOT EXISTS "tutorialImage" TEXT;
+ALTER TABLE "Product" ALTER COLUMN "description" SET DEFAULT '';

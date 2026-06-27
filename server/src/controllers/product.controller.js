@@ -51,13 +51,14 @@ const productSchema = z.object({
 
 const updateProductSchema = productSchema.partial();
 
-const getUploadedImageUrl = (req) => {
-  const uploadedFile =
-    req.files?.thumbnail?.[0] ||
-    req.files?.tutorialImage?.[0] ||
-    req.file;
+const getUploadedImages = (req) => {
+  const thumbnailFile = req.files?.thumbnail?.[0] || req.file;
+  const tutorialImageFile = req.files?.tutorialImage?.[0];
 
-  return uploadedFile?.path || null;
+  return {
+    thumbnail: thumbnailFile?.path || null,
+    tutorialImage: tutorialImageFile?.path || null,
+  };
 };
 
 const buildUniqueSlug = async (title, currentProductId = null) => {
@@ -121,7 +122,7 @@ async function createProduct(req, res, next) {
   try {
     const data = productSchema.parse(req.body);
 
-    const thumbnail = getUploadedImageUrl(req);
+    const { thumbnail, tutorialImage } = getUploadedImages(req);
 
     const slug = await buildUniqueSlug(data.title);
 
@@ -135,6 +136,7 @@ async function createProduct(req, res, next) {
         type: data.type,
         deliveryType: data.deliveryType,
         thumbnail,
+        tutorialImage,
         deliveryUrl: data.deliveryUrl,
         fileUrl: data.fileUrl,
         isActive: data.isActive,
@@ -163,13 +165,12 @@ async function updateProduct(req, res, next) {
       });
     }
 
-    const uploadedImageUrl = getUploadedImageUrl(req);
+    const { thumbnail, tutorialImage } = getUploadedImages(req);
 
-    const thumbnail = uploadedImageUrl
-      ? {
-          thumbnail: uploadedImageUrl,
-        }
-      : {};
+    const imageUpdates = {
+      ...(thumbnail && { thumbnail }),
+      ...(tutorialImage && { tutorialImage }),
+    };
 
     const slug = data.title
       ? await buildUniqueSlug(data.title, req.params.id)
@@ -181,7 +182,7 @@ async function updateProduct(req, res, next) {
       },
       data: {
         ...data,
-        ...thumbnail,
+        ...imageUpdates,
         slug,
       },
     });
