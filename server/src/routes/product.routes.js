@@ -12,11 +12,17 @@ const { upload } = require("../middleware/upload");
 
 const router = express.Router();
 
+const productUpload = upload.fields([
+  { name: "thumbnail", maxCount: 1 },
+  { name: "tutorialImage", maxCount: 1 },
+]);
+
 router.get("/", getProducts);
 router.get("/:slug", getProductBySlug);
 
-router.post("/", upload.single("thumbnail"), createProduct);
-router.patch("/:id", upload.single("thumbnail"), updateProduct);
+router.post("/", productUpload, createProduct);
+router.patch("/:id", productUpload, updateProduct);
+
 router.delete("/:id", deleteProduct);
 
 module.exports = router;
