@@ -61,6 +61,18 @@ const getUploadedImages = (req) => {
   };
 };
 
+const logUploadedFiles = (req, label) => {
+  console.log(`\n====== ${label} UPLOAD DEBUG ======`);
+  console.log("BODY:", req.body);
+
+  console.log("FILES KEYS:", req.files ? Object.keys(req.files) : "No req.files");
+
+  console.log("THUMBNAIL FILE:", req.files?.thumbnail?.[0] || null);
+  console.log("TUTORIAL IMAGE FILE:", req.files?.tutorialImage?.[0] || null);
+
+  console.log("=================================\n");
+};
+
 const buildUniqueSlug = async (title, currentProductId = null) => {
   const baseSlug = createSlug(title);
 
@@ -70,9 +82,7 @@ const buildUniqueSlug = async (title, currentProductId = null) => {
     },
   });
 
-  if (!existingProduct) {
-    return baseSlug;
-  }
+  if (!existingProduct) return baseSlug;
 
   if (currentProductId && existingProduct.id === currentProductId) {
     return baseSlug;
@@ -112,6 +122,12 @@ async function getProductBySlug(req, res, next) {
       });
     }
 
+    console.log("\n====== PRODUCT DETAIL DEBUG ======");
+    console.log("PRODUCT ID:", product.id);
+    console.log("THUMBNAIL:", product.thumbnail);
+    console.log("TUTORIAL IMAGE:", product.tutorialImage);
+    console.log("==================================\n");
+
     res.json({ product });
   } catch (error) {
     next(error);
@@ -120,9 +136,13 @@ async function getProductBySlug(req, res, next) {
 
 async function createProduct(req, res, next) {
   try {
-    const data = productSchema.parse(req.body);
+    logUploadedFiles(req, "CREATE PRODUCT");
 
+    const data = productSchema.parse(req.body);
     const { thumbnail, tutorialImage } = getUploadedImages(req);
+
+    console.log("PARSED THUMBNAIL URL:", thumbnail);
+    console.log("PARSED TUTORIAL IMAGE URL:", tutorialImage);
 
     const slug = await buildUniqueSlug(data.title);
 
@@ -143,6 +163,12 @@ async function createProduct(req, res, next) {
       },
     });
 
+    console.log("\n====== SAVED PRODUCT DEBUG ======");
+    console.log("PRODUCT ID:", product.id);
+    console.log("SAVED THUMBNAIL:", product.thumbnail);
+    console.log("SAVED TUTORIAL IMAGE:", product.tutorialImage);
+    console.log("=================================\n");
+
     res.status(201).json({ product });
   } catch (error) {
     next(error);
@@ -151,6 +177,8 @@ async function createProduct(req, res, next) {
 
 async function updateProduct(req, res, next) {
   try {
+    logUploadedFiles(req, "UPDATE PRODUCT");
+
     const data = updateProductSchema.parse(req.body);
 
     const existingProduct = await prisma.product.findUnique({
@@ -167,10 +195,15 @@ async function updateProduct(req, res, next) {
 
     const { thumbnail, tutorialImage } = getUploadedImages(req);
 
+    console.log("PARSED THUMBNAIL URL:", thumbnail);
+    console.log("PARSED TUTORIAL IMAGE URL:", tutorialImage);
+
     const imageUpdates = {
       ...(thumbnail && { thumbnail }),
       ...(tutorialImage && { tutorialImage }),
     };
+
+    console.log("IMAGE UPDATES:", imageUpdates);
 
     const slug = data.title
       ? await buildUniqueSlug(data.title, req.params.id)
@@ -186,6 +219,12 @@ async function updateProduct(req, res, next) {
         slug,
       },
     });
+
+    console.log("\n====== UPDATED PRODUCT DEBUG ======");
+    console.log("PRODUCT ID:", product.id);
+    console.log("UPDATED THUMBNAIL:", product.thumbnail);
+    console.log("UPDATED TUTORIAL IMAGE:", product.tutorialImage);
+    console.log("===================================\n");
 
     res.json({ product });
   } catch (error) {
