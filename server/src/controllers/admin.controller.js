@@ -2,16 +2,31 @@ const prisma = require("../config/prisma");
 
 async function getAdminStats(req, res, next) {
   try {
-    const [users, products, orders, bookings] = await Promise.all([
-      prisma.user.count(),
-      prisma.product.count({
-        where: {
-          isActive: true,
-        },
-      }),
-      prisma.order.count(),
-      prisma.counsellingBooking.count(),
-    ]);
+    const [users, products, orders, bookings, revenueData] =
+      await Promise.all([
+        prisma.user.count(),
+
+        prisma.product.count({
+          where: {
+            isActive: true,
+          },
+        }),
+
+        prisma.order.count(),
+
+        prisma.counsellingBooking.count(),
+
+        prisma.order.aggregate({
+          where: {
+            status: "PAID",
+          },
+          _sum: {
+            totalAmount: true,
+          },
+        }),
+      ]);
+
+    const revenue = revenueData._sum.totalAmount || 0;
 
     res.json({
       stats: {
@@ -19,6 +34,7 @@ async function getAdminStats(req, res, next) {
         products,
         orders,
         bookings,
+        revenue,
       },
     });
   } catch (error) {
